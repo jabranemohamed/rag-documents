@@ -3,13 +3,13 @@
 A **generic PDF document intelligence** application: upload documents (text
 **and images**, built-in OCR), vector indexing, a paginated library with PDF
 viewing/downloading, grounded RAG Q&A and a tool-using agent. Backend in
-**Java 21 / Spring Boot 3.5**, frontend in **Angular 20**. The LLM is
+**Java 21 / Spring Boot 4.1**, frontend in **Angular 20**. The LLM is
 pluggable: a **free local Ollama** model, or optionally **Claude** (official
 Anthropic SDK) — no OpenAI dependency.
 
 | Layer | Tech |
 |---|---|
-| Backend | Spring Boot 3.5, Maven |
+| Backend | Spring Boot 4.1, Maven |
 | LLM | **Claude Opus 5.5** via `com.anthropic:anthropic-java` (default) **or free local Ollama** (`LLM_PROVIDER=ollama`) |
 | Embeddings | Local ONNX `all-MiniLM-L6-v2` (384 dims) — no API call |
 | Vector store | PostgreSQL + pgvector (Docker, host port **5442**) |

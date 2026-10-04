@@ -3,7 +3,7 @@
 **Generic PDF document intelligence** application: upload (text + images via
 Tesseract OCR), vector indexing, paginated library with PDF
 viewing/downloading, grounded RAG Q&A, tool-using agent.
-Java 21 / Spring Boot 3.5 (Maven) · Angular 20 · PGVector (Docker, port 5442)
+Java 21 / Spring Boot 4.1 (Maven) · Angular 20 · PGVector (Docker, port 5442)
 · LLM of choice: Claude (official Anthropic SDK) or free local Ollama.
 
 Getting started: see INSTALL.md. Backend on **8085**, frontend on **4200**.
