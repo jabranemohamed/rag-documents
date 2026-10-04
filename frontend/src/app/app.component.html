@@ -84,12 +84,8 @@
           <h2>Document Q&amp;A</h2>
         </div>
       </div>
-      <div class="prompt-grid">
-        @for (example of ragExamples; track example) {
-          <button class="ghost-button" (click)="ragQuestion = example">{{ example }}</button>
-        }
-      </div>
-      <textarea [(ngModel)]="ragQuestion"></textarea>
+      <textarea [(ngModel)]="ragQuestion"
+                placeholder="Ask a question about your documents…"></textarea>
       <button class="primary-button" (click)="askRag()" [disabled]="isBusy()">Ask RAG</button>
       @if (ragResponse(); as rag) {
         <div class="answer-box">

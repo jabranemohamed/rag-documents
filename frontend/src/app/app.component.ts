@@ -12,13 +12,6 @@ import {
   UploadResponse
 } from './models';
 
-const RAG_EXAMPLES = [
-  'What topics are covered in the documents?',
-  'What is the difference between an interface and an abstract class in Java?',
-  'What does the guide say about microservices?',
-  'Who is Bill Gates?'
-];
-
 const AGENT_EXAMPLES = [
   'Which documents are indexed?',
   'Give me a processing summary',
@@ -33,7 +26,6 @@ const AGENT_EXAMPLES = [
   templateUrl: './app.component.html'
 })
 export class AppComponent implements OnInit {
-  readonly ragExamples = RAG_EXAMPLES;
   readonly agentExamples = AGENT_EXAMPLES;
 
   readonly activeView = signal<'dashboard' | 'library' | 'agent'>('dashboard');
@@ -49,7 +41,7 @@ export class AppComponent implements OnInit {
   readonly uploadResponse = signal<UploadResponse | null>(null);
   readonly isUploading = signal(false);
 
-  ragQuestion = RAG_EXAMPLES[0];
+  ragQuestion = '';
   agentQuestion = AGENT_EXAMPLES[0];
 
   readonly artifactEntries = computed(() => {
@@ -117,8 +109,12 @@ export class AppComponent implements OnInit {
   }
 
   async askRag(): Promise<void> {
+    if (!this.ragQuestion.trim()) {
+      this.error.set('Type a question first.');
+      return;
+    }
     await this.withBusy(async () => {
-      this.ragResponse.set(await this.api.askRag(this.ragQuestion));
+      this.ragResponse.set(await this.api.askRag(this.ragQuestion.trim()));
     });
   }
 
