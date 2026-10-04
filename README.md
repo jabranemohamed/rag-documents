@@ -18,6 +18,20 @@ gratuit** — aucune dépendance OpenAI.
 | API | Spring Web REST, Swagger via springdoc |
 | UI | Angular 20 standalone + signals |
 
+## Captures d'écran
+
+**Dashboard** — métriques, upload de PDF et Q&A RAG avec réponse groundée :
+
+![Dashboard](docs/screenshots/dashboard.jpg)
+
+**Library** — bibliothèque paginée, consultation et téléchargement des PDF :
+
+![Library](docs/screenshots/library.jpg)
+
+**Agent** — assistant documentaire (outil sélectionné + réponse finale) :
+
+![Agent](docs/screenshots/agent.jpg)
+
 ## Démarrage rapide (mode local gratuit)
 
 > Installation complète pas à pas : voir **[INSTALL.md](INSTALL.md)**.
