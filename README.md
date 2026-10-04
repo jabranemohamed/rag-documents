@@ -1,11 +1,11 @@
-# RAG Documents — Java + Angular + Claude
+# RAG Documents — Java + Angular
 
 A **generic PDF document intelligence** application: upload documents (text
 **and images**, built-in OCR), vector indexing, a paginated library with PDF
 viewing/downloading, grounded RAG Q&A and a tool-using agent. Backend in
-**Java 21 / Spring Boot 3.5**, frontend in **Angular 20**, LLM powered by
-**Claude** (official Anthropic SDK) or a **free local Ollama** model — no
-OpenAI dependency.
+**Java 21 / Spring Boot 3.5**, frontend in **Angular 20**. The LLM is
+pluggable: a **free local Ollama** model, or optionally **Claude** (official
+Anthropic SDK) — no OpenAI dependency.
 
 | Layer | Tech |
 |---|---|

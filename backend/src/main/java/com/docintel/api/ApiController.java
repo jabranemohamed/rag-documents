@@ -50,13 +50,13 @@ public class ApiController {
 
     @GetMapping("/health")
     public Map<String, Object> healthCheck() {
-        return Map.of("status", "ok", "service", "PDF Document Intelligence API (Java + Claude)");
+        return Map.of("status", "ok", "service", "RAG Documents API");
     }
 
     @GetMapping("/")
     public Map<String, Object> apiHome() {
         Map<String, Object> home = new LinkedHashMap<>();
-        home.put("service", "PDF Document Intelligence API (Java + Claude)");
+        home.put("service", "RAG Documents API");
         home.put("docs", "/swagger-ui.html");
         home.put("health", "/health");
         home.put("pipeline_status", "/pipeline/status");
