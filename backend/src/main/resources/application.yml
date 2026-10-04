@@ -1,0 +1,41 @@
+server:
+  port: 8085
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: document-intelligence
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 100MB
+  datasource:
+    url: jdbc:postgresql://localhost:5442/docintel
+    username: docintel
+    password: docintel
+  sql:
+    init:
+      mode: always
+
+docintel:
+  # Data directories (relative to the backend working directory by default)
+  data-root: ${DOCINTEL_DATA_DIR:../data}
+  # Claude configuration - the API key is read from the ANTHROPIC_API_KEY env var by the SDK
+  claude-model: ${CLAUDE_MODEL:claude-opus-5-5}
+  # LLM provider: "claude" (default, best quality) or "ollama" (free, local)
+  llm-provider: ${LLM_PROVIDER:claude}
+  ollama-base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+  ollama-model: ${OLLAMA_MODEL:qwen2.5:14b}
+  # Cosine-distance threshold above which retrieved context is considered irrelevant
+  retrieval-distance-threshold: ${RETRIEVAL_DISTANCE_THRESHOLD:1.25}
+  chunk-size: 1000
+  chunk-overlap: 150
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.docintel: INFO

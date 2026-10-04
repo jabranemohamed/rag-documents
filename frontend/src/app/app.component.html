@@ -1,0 +1,194 @@
+<div class="site-header">
+  <div class="header-inner">
+    <div class="topbar">
+      <div class="brand">
+        <span class="brand-mark">R</span>
+        <h1>RAG Documents</h1>
+      </div>
+      <div class="api-control">
+        <label for="apiBaseUrl">API Base URL</label>
+        <input id="apiBaseUrl" [(ngModel)]="apiBaseUrlInput" (change)="applyBaseUrl()" />
+        <button class="header-button" (click)="refreshDashboard()" [disabled]="isBusy()">Refresh</button>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <button [class.active]="activeView() === 'dashboard'" (click)="setView('dashboard')">
+        Dashboard
+      </button>
+      <button [class.active]="activeView() === 'library'" (click)="setView('library')">
+        Library
+        <span class="nav-badge">{{ totalDocuments() }}</span>
+      </button>
+      <button [class.active]="activeView() === 'agent'" (click)="setView('agent')">
+        Agent
+      </button>
+    </nav>
+  </div>
+</div>
+
+<main class="app-shell">
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  @if (activeView() === 'dashboard') {
+    <section class="metrics-grid">
+      <div class="metric metric-green">
+        <span>API</span>
+        <strong>{{ health()?.status || 'Unknown' }}</strong>
+      </div>
+      <div class="metric metric-blue">
+        <span>Documents</span>
+        <strong>{{ totalDocuments() }}</strong>
+      </div>
+      <div class="metric metric-green">
+        <span>Chunks</span>
+        <strong>{{ totalChunks() }}</strong>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Ingestion</span>
+          <h2>Upload a PDF Document</h2>
+        </div>
+        <button class="primary-button" (click)="runPipeline()" [disabled]="isBusy()">
+          Run Pipeline
+        </button>
+      </div>
+      <div class="upload-row">
+        <input type="file" accept=".pdf,application/pdf" (change)="onFileSelected($event)" />
+        <button class="primary-button" (click)="uploadDocument()"
+                [disabled]="isUploading() || !selectedFile()">
+          {{ isUploading() ? 'Processing…' : 'Upload & Process' }}
+        </button>
+      </div>
+      <p class="muted-text">
+        PDF only - text and images are both supported (image pages are read with
+        OCR). The document is extracted, chunked, embedded into PGVector and
+        becomes immediately searchable through RAG and the agent.
+      </p>
+      @if (uploadResponse(); as upload) {
+        <div class="answer-box">
+          <strong>Document processed</strong>
+          <p>
+            Document ID: {{ upload.document_id }} ·
+            {{ upload.pipeline.vector_store_chunks }} chunks in the vector store
+          </p>
+          <span class="muted-text">{{ upload.original_filename }} → {{ upload.stored_file }}</span>
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">RAG</span>
+          <h2>Document Q&amp;A</h2>
+        </div>
+      </div>
+      <div class="prompt-grid">
+        @for (example of ragExamples; track example) {
+          <button class="ghost-button" (click)="ragQuestion = example">{{ example }}</button>
+        }
+      </div>
+      <textarea [(ngModel)]="ragQuestion"></textarea>
+      <button class="primary-button" (click)="askRag()" [disabled]="isBusy()">Ask RAG</button>
+      @if (ragResponse(); as rag) {
+        <div class="answer-box">
+          <strong>Answer</strong>
+          <p>{{ rag.answer }}</p>
+        </div>
+        <div class="sources-list">
+          @for (source of rag.sources; track source.chunk_id) {
+            <div class="source-row">
+              <span>Source {{ source.source_number }} · {{ source.document_id }} · chunk {{ source.chunk_index }}</span>
+              <span class="muted-text">distance {{ source.cosine_distance | number: '1.0-4' }}</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">No response yet</div>
+      }
+    </section>
+  }
+
+  @if (activeView() === 'library') {
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Library</span>
+          <h2>Indexed Documents</h2>
+        </div>
+        <span class="muted-text">{{ totalDocuments() }} documents · {{ totalChunks() }} chunks</span>
+      </div>
+      @if (documents().length) {
+        <div class="document-list">
+          @for (document of documents(); track document.document_id) {
+            <div class="document-row">
+              <a class="document-link"
+                 [href]="documentFileUrl(document.document_id)"
+                 target="_blank" rel="noopener"
+                 title="Open the PDF in a new tab">
+                {{ document.document_id }}
+              </a>
+              <span class="document-actions">
+                <span class="muted-text">{{ document.chunk_count }} chunks</span>
+                <a class="download-button"
+                   [href]="documentFileUrl(document.document_id, true)"
+                   title="Download the PDF">
+                  ⬇ Download
+                </a>
+              </span>
+            </div>
+          }
+        </div>
+        <div class="pagination">
+          <button (click)="loadDocumentsPage(0)" [disabled]="currentPage() === 0">«</button>
+          <button (click)="loadDocumentsPage(currentPage() - 1)" [disabled]="currentPage() === 0">
+            Previous
+          </button>
+          <span class="muted-text">Page {{ currentPage() + 1 }} / {{ totalPages() }}</span>
+          <button (click)="loadDocumentsPage(currentPage() + 1)"
+                  [disabled]="currentPage() + 1 >= totalPages()">
+            Next
+          </button>
+          <button (click)="loadDocumentsPage(totalPages() - 1)"
+                  [disabled]="currentPage() + 1 >= totalPages()">»</button>
+        </div>
+      } @else {
+        <div class="empty-state">No documents indexed yet - upload a PDF or run the pipeline</div>
+      }
+    </section>
+  }
+
+  @if (activeView() === 'agent') {
+    <section class="panel">
+      <div class="section-header">
+        <div>
+          <span class="eyebrow">Agent</span>
+          <h2>Document Assistant</h2>
+        </div>
+      </div>
+      <div class="prompt-grid">
+        @for (example of agentExamples; track example) {
+          <button class="ghost-button" (click)="agentQuestion = example">{{ example }}</button>
+        }
+      </div>
+      <textarea [(ngModel)]="agentQuestion"></textarea>
+      <button class="primary-button" (click)="askAgent()" [disabled]="isBusy()">Ask Agent</button>
+      @if (agentResponse(); as agent) {
+        <div class="answer-box">
+          <strong>Final Answer</strong>
+          <p>{{ agent.final_answer }}</p>
+          <span class="muted-text">Tool: {{ agent.tool_used }}</span>
+        </div>
+        <pre class="json-block">{{ asJson(agent.result) }}</pre>
+      } @else {
+        <div class="empty-state">No response yet</div>
+      }
+    </section>
+  }
+</main>
