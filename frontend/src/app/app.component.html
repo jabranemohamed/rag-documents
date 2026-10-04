@@ -5,11 +5,6 @@
         <span class="brand-mark">R</span>
         <h1>RAG Documents</h1>
       </div>
-      <div class="api-control">
-        <label for="apiBaseUrl">API Base URL</label>
-        <input id="apiBaseUrl" [(ngModel)]="apiBaseUrlInput" (change)="applyBaseUrl()" />
-        <button class="header-button" (click)="refreshDashboard()" [disabled]="isBusy()">Refresh</button>
-      </div>
     </div>
 
     <nav class="main-nav">

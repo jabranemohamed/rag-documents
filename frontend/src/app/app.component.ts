@@ -51,7 +51,6 @@ export class AppComponent implements OnInit {
 
   ragQuestion = RAG_EXAMPLES[0];
   agentQuestion = AGENT_EXAMPLES[0];
-  apiBaseUrlInput = '';
 
   readonly artifactEntries = computed(() => {
     const files = this.pipelineStatus()?.output_files ?? {};
@@ -72,7 +71,6 @@ export class AppComponent implements OnInit {
   readonly totalPages = computed(() => this.documentsPage()?.total_pages ?? 0);
 
   constructor(readonly api: ApiService) {
-    this.apiBaseUrlInput = this.api.apiBaseUrl();
   }
 
   ngOnInit(): void {
@@ -81,11 +79,6 @@ export class AppComponent implements OnInit {
 
   setView(view: 'dashboard' | 'library' | 'agent'): void {
     this.activeView.set(view);
-  }
-
-  applyBaseUrl(): void {
-    this.api.setBaseUrl(this.apiBaseUrlInput.trim());
-    void this.refreshDashboard();
   }
 
   async refreshDashboard(): Promise<void> {

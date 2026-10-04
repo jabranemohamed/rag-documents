@@ -43,7 +43,7 @@ body {
 
 .topbar {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
@@ -73,34 +73,6 @@ body {
   margin: 0;
   font-size: 1.35rem;
   color: #fff;
-}
-
-.api-control {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.api-control label {
-  font-size: 0.8rem;
-  color: #9aa0bd;
-}
-
-.api-control input {
-  width: 230px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  color: var(--header-text);
-}
-
-.header-button {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--header-text);
-}
-
-.header-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.18);
 }
 
 /* ------------------------------------------------------------ nav */
