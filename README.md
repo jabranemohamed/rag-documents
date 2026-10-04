@@ -1,45 +1,45 @@
 # RAG Documents — Java + Angular + Claude
 
-Application de document intelligence **générique pour PDF** : upload de
-documents (texte **et images**, OCR intégré), indexation vectorielle,
-bibliothèque paginée avec consultation/téléchargement des PDF, Q&A RAG
-groundé et agent à outils. Backend **Java 21 / Spring Boot 3.5**, frontend
-**Angular 20**, LLM **Claude** (SDK officiel Anthropic) ou **Ollama local
-gratuit** — aucune dépendance OpenAI.
+A **generic PDF document intelligence** application: upload documents (text
+**and images**, built-in OCR), vector indexing, a paginated library with PDF
+viewing/downloading, grounded RAG Q&A and a tool-using agent. Backend in
+**Java 21 / Spring Boot 3.5**, frontend in **Angular 20**, LLM powered by
+**Claude** (official Anthropic SDK) or a **free local Ollama** model — no
+OpenAI dependency.
 
-| Couche | Techno |
+| Layer | Tech |
 |---|---|
 | Backend | Spring Boot 3.5, Maven |
-| LLM | **Claude Opus 5.5** via `com.anthropic:anthropic-java` (défaut) **ou Ollama local gratuit** (`LLM_PROVIDER=ollama`) |
-| Embeddings | ONNX local `all-MiniLM-L6-v2` (384 dims) — aucun appel API |
-| Vector store | PostgreSQL + pgvector (Docker, port hôte **5442**) |
-| PDF | Apache PDFBox (texte) + **Tesseract OCR** (pages images/scannées) |
-| Agent | Tool use natif Claude (ou flux 2 étapes sur Ollama) + guardrails read-only |
+| LLM | **Claude Opus 5.5** via `com.anthropic:anthropic-java` (default) **or free local Ollama** (`LLM_PROVIDER=ollama`) |
+| Embeddings | Local ONNX `all-MiniLM-L6-v2` (384 dims) — no API call |
+| Vector store | PostgreSQL + pgvector (Docker, host port **5442**) |
+| PDF | Apache PDFBox (text) + **Tesseract OCR** (image/scanned pages) |
+| Agent | Native Claude tool use (or a 2-step flow on Ollama) + read-only guardrails |
 | API | Spring Web REST, Swagger via springdoc |
 | UI | Angular 20 standalone + signals |
 
-## Captures d'écran
+## Screenshots
 
-**Dashboard** — métriques, upload de PDF et Q&A RAG avec réponse groundée :
+**Dashboard** — metrics, PDF upload and RAG Q&A with a grounded answer:
 
 ![Dashboard](docs/screenshots/dashboard.jpg)
 
-**Library** — bibliothèque paginée, consultation et téléchargement des PDF :
+**Library** — paginated library with PDF viewing and downloading:
 
 ![Library](docs/screenshots/library.jpg)
 
-**Agent** — assistant documentaire (outil sélectionné + réponse finale) :
+**Agent** — document assistant (selected tool + final answer):
 
 ![Agent](docs/screenshots/agent.jpg)
 
-## Démarrage rapide (mode local gratuit)
+## Quick start (free local mode)
 
-> Installation complète pas à pas : voir **[INSTALL.md](INSTALL.md)**.
+> Full step-by-step installation: see **[INSTALL.md](INSTALL.md)**.
 
-Trois commandes, dans trois terminaux, depuis la racine du projet :
+Three commands, in three terminals, from the project root:
 
 ```bash
-# 1. Infra : PGVector + Ollama (+ OCR)
+# 1. Infra: PGVector + Ollama (+ OCR)
 docker compose up -d && brew services start ollama
 ```
 
@@ -53,88 +53,86 @@ cd backend && LLM_PROVIDER=ollama mvn spring-boot:run
 cd frontend && npm start
 ```
 
-Puis ouvrez http://localhost:4200. Pour utiliser Claude au lieu d'Ollama,
-retirez `LLM_PROVIDER=ollama` et exportez `ANTHROPIC_API_KEY` avant la
-commande 2.
+Then open http://localhost:4200. To use Claude instead of Ollama, drop
+`LLM_PROVIDER=ollama` and export `ANTHROPIC_API_KEY` before command 2.
 
-## Fonctionnement
+## How it works
 
 ```text
-PDF (data/raw, récursif)            POST /documents/upload
+PDFs (data/raw, recursive)          POST /documents/upload
         │                                   │
         ▼                                   ▼
-Extraction texte (PDFBox) + OCR des pages images (Tesseract)
+Text extraction (PDFBox) + OCR of image pages (Tesseract)
         ▼
-Nettoyage → chunks (1000 car. / 150 overlap)
+Cleaning → chunks (1000 chars / 150 overlap)
         ▼
-Embeddings locaux ONNX → PGVector (table document_chunks, cosinus <=>)
+Local ONNX embeddings → PGVector (document_chunks table, cosine <=>)
         ▼
-RAG Q&A groundé (sources + distances) · Agent à outils
+Grounded RAG Q&A (sources + distances) · Tool-using agent
 ```
 
-Un PDF = un document ; l'identifiant est dérivé du nom de fichier. Chaque
-étape est idempotente : relancer le pipeline ne retraite que les nouveaux
-documents.
+One PDF = one document; the id is derived from the filename. Every step is
+idempotent: re-running the pipeline only processes new documents.
 
 ## Endpoints
 
-| Méthode | Endpoint | Rôle |
+| Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/health` | Statut de l'API |
-| GET | `/pipeline/status` | Statut des artefacts générés |
-| POST | `/pipeline/run` | Pipeline complet (idempotent) |
-| GET | `/documents?page=0&size=10` | Documents indexés, **pagination côté serveur** (SQL LIMIT/OFFSET, 10 par page par défaut, `size` max 50 ; renvoie `page`, `total_pages`, `total_documents`, `total_chunks`) |
-| GET | `/documents/{id}/file` | Le PDF original : affichage inline dans le navigateur, ou téléchargement avec `?download=true` |
-| POST | `/documents/upload` | Upload d'un PDF (multipart `file`, 25 Mo max) + traitement automatique |
-| POST | `/rag/ask` | Question RAG groundée (`{"question", "top_k", "use_cache"}`) |
-| POST | `/agent/ask` | Agent documentaire (`{"question"}`) |
+| GET | `/health` | API status |
+| GET | `/pipeline/status` | Generated artifact status |
+| POST | `/pipeline/run` | Full pipeline (idempotent) |
+| GET | `/documents?page=0&size=10` | Indexed documents, **server-side pagination** (SQL LIMIT/OFFSET, 10 per page by default, `size` max 50; returns `page`, `total_pages`, `total_documents`, `total_chunks`) |
+| GET | `/documents/{id}/file` | The original PDF: inline in the browser, or download with `?download=true` |
+| POST | `/documents/upload` | Upload a PDF (multipart `file`, 25 MB max) + automatic processing |
+| POST | `/rag/ask` | Grounded RAG question (`{"question", "top_k", "use_cache"}`) |
+| POST | `/agent/ask` | Document agent (`{"question"}`) |
 
-Swagger : http://localhost:8085/swagger-ui.html
+Swagger: http://localhost:8085/swagger-ui.html
 
-## Interface (Angular)
+## UI (Angular)
 
-Thème **clair** : bandeau de navigation sombre (logo, champ API Base URL,
-onglets), contenu sur fond gris clair avec cartes blanches arrondies et
-accents indigo. Trois menus :
+**Light** theme: dark navigation bar (logo and tabs), content on a light gray
+background with rounded white cards and indigo accents. Three menus:
 
-- **Dashboard** : métriques (API, documents, chunks), upload de PDF +
-  Run Pipeline, Q&A RAG avec sources et distances.
-- **Library** : bibliothèque paginée (10 documents par page, pagination
-  serveur) ; le nom de chaque document est un **lien qui ouvre le PDF** dans
-  un nouvel onglet, et chaque ligne a un bouton **Download**.
-- **Agent** : assistant documentaire (sélection d'outil visible + réponse
-  finale + résultat brut).
+- **Dashboard**: metrics (API, documents, chunks), PDF upload + Run Pipeline,
+  RAG Q&A with sources and distances.
+- **Library**: paginated library (10 documents per page, server-side
+  pagination); each document name is a **link that opens the PDF** in a new
+  tab, and every row has a **Download** button.
+- **Agent**: document assistant (visible tool selection + final answer + raw
+  tool result).
 
-La palette se règle via les variables CSS en tête de `frontend/src/styles.css`.
+The palette is driven by the CSS variables at the top of
+`frontend/src/styles.css`.
 
-## L'agent
+## The agent
 
-Trois outils read-only : `list_documents`, `summarize_pipeline_outputs`,
-`ask_documents` (RAG). En mode Claude, le routage passe par le **tool use
-natif** de l'API (boucle gérée par le BetaToolRunner du SDK). En mode Ollama,
-flux en deux étapes : sélection d'outil en JSON contraint par schéma →
-exécution Java → réponse finale. Dans les deux modes, les requêtes
-destructives (delete, drop…) sont bloquées avant tout appel LLM.
+Three read-only tools: `list_documents`, `summarize_pipeline_outputs`,
+`ask_documents` (RAG). With the Claude provider, routing uses the API's
+**native tool use** (the SDK BetaToolRunner drives the loop). With Ollama, a
+two-step flow runs instead: schema-constrained JSON tool selection → Java-side
+execution → final answer. In both modes, destructive requests (delete, drop…)
+are blocked before any LLM call.
 
 ## Configuration
 
-| Variable | Valeurs | Défaut |
+| Variable | Values | Default |
 |---|---|---|
 | `LLM_PROVIDER` | `claude` \| `ollama` | `claude` |
-| `ANTHROPIC_API_KEY` | clé API (mode claude) | — |
-| `CLAUDE_MODEL` | modèle Claude | `claude-opus-5-5` |
-| `OLLAMA_MODEL` | tout modèle Ollama | `qwen2.5:14b` |
-| `OLLAMA_BASE_URL` | URL du serveur | `http://localhost:11434` |
-| `OCR_LANGUAGE` | langues Tesseract (ex. `eng+fra`) | `eng` |
-| `TESSDATA_PREFIX` | dossier traineddata | `/opt/homebrew/share/tessdata` |
-| `RETRIEVAL_DISTANCE_THRESHOLD` | seuil no-context | `1.25` |
+| `ANTHROPIC_API_KEY` | API key (claude mode) | — |
+| `CLAUDE_MODEL` | Claude model | `claude-opus-5-5` |
+| `OLLAMA_MODEL` | any Ollama model | `qwen2.5:14b` |
+| `OLLAMA_BASE_URL` | server URL | `http://localhost:11434` |
+| `OCR_LANGUAGE` | Tesseract languages (e.g. `eng+fra`) | `eng` |
+| `TESSDATA_PREFIX` | traineddata folder | `/opt/homebrew/share/tessdata` |
+| `RETRIEVAL_DISTANCE_THRESHOLD` | no-context threshold | `1.25` |
 
-Autres réglages dans `backend/src/main/resources/application.yml`
-(préfixe `docintel.*` : chunk-size, chunk-overlap, data-root…).
+Other settings live in `backend/src/main/resources/application.yml`
+(`docintel.*` prefix: chunk-size, chunk-overlap, data-root…).
 
-## Données
+## Data
 
-- `data/raw/` : les PDF sources (sous-dossiers acceptés) ; les uploads vont
-  dans `data/raw/uploads/`.
-- `data/processed/` : textes extraits, nettoyés, chunks, manifest.
-- `data/output/` : cache des réponses RAG, résumé de traitement.
+- `data/raw/`: source PDFs (subfolders allowed); uploads go to
+  `data/raw/uploads/`.
+- `data/processed/`: extracted text, cleaned text, chunks, manifest.
+- `data/output/`: RAG answer cache, processing summary.
